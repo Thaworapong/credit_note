@@ -42,8 +42,12 @@ jobs:
             --add-data "../template/credit_note_template.xlsx;template" `
             --add-data "../output;output"
 
+      - name: List dist folder contents
+        run: dir credit_note\dist\ /s
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: CreditNoteApp
-          path: credit_note/dist/CreditNoteApp.exe
+          path: credit_note/dist/CreditNoteApp/
+
