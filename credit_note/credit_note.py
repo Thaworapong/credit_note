@@ -4,12 +4,20 @@ from datetime import datetime
 from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout,
     QHBoxLayout, QFormLayout, QTableWidget, QTableWidgetItem,
-    QDateEdit, QTextEdit, QHeaderView, QFileDialog, QMessageBox
+    QDateEdit, QTextEdit, QHeaderView, QMessageBox
 )
 from PySide6.QtCore import QDate, Qt
 from openpyxl import load_workbook
 from pythainlp.util import bahttext
 from PySide6.QtGui import QIcon
+
+# Mapping Thai digits to Arabic digits
+thai_digits = "๐๑๒๓๔๕๖๗๘๙"
+arabic_digits = "0123456789"
+trans_table = str.maketrans(thai_digits, arabic_digits)
+
+def to_arabic_digits(text: str) -> str:
+    return text.translate(trans_table)
 
 class CreditNoteWindow(QWidget):
     def __init__(self):
@@ -48,7 +56,8 @@ class CreditNoteWindow(QWidget):
 
     def generate_credit_note_no(self):
         now = datetime.now()
-        year_month = now.strftime("%Y%m")
+        thai_year = now.year + 543
+        year_month = f"{thai_year}{now.strftime('%m')}"
         date_key = now.strftime("%Y-%m-%d")
 
         existing = self.credit_note_log.get(date_key, [])
@@ -68,6 +77,10 @@ class CreditNoteWindow(QWidget):
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.setCalendarPopup(True)
 
+        self.tax_invoice_date = QDateEdit()
+        self.tax_invoice_date.setDate(QDate.currentDate())
+        self.tax_invoice_date.setCalendarPopup(True)
+
         self.invoice_input = QLineEdit()
         self.invoice_amount_input = QLineEdit("0.00")
         self.invoice_amount_input.textChanged.connect(self.update_amounts)
@@ -81,6 +94,7 @@ class CreditNoteWindow(QWidget):
         form_layout.addRow("Date:", self.date_edit)
         form_layout.addRow("Reference Invoice:", self.invoice_input)
         form_layout.addRow("Invoice Amount (Input):", self.invoice_amount_input)
+        form_layout.addRow("Invoice Date:", self.tax_invoice_date)
         form_layout.addRow("Customer ID:", self.customer_id)
         form_layout.addRow("Customer Name:", self.customer_name)
         form_layout.addRow("Customer Address:", self.customer_address)
@@ -164,21 +178,21 @@ class CreditNoteWindow(QWidget):
             amount_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.table.setItem(row, 3, amount_item)
 
-        self.total_credit.setText(f"{total:.2f}")
+        self.total_credit.setText(to_arabic_digits(f"{total:.2f}"))
 
         try:
             invoice_amt = float(self.invoice_amount_input.text())
         except ValueError:
             invoice_amt = 0.0
 
-        self.invoice_amount_display.setText(f"{invoice_amt:.2f}")
+        self.invoice_amount_display.setText(to_arabic_digits(f"{invoice_amt:.2f}"))
         diff = invoice_amt - total
         vat = diff * 0.07 if diff > 0 else 0.0
         total_vat = diff + vat if diff > 0 else diff
 
-        self.different_amount.setText(f"{diff:.2f}")
-        self.vat_amount.setText(f"{vat:.2f}")
-        self.total_with_vat.setText(f"{total_vat:.2f}")
+        self.different_amount.setText(to_arabic_digits(f"{diff:.2f}"))
+        self.vat_amount.setText(to_arabic_digits(f"{vat:.2f}"))
+        self.total_with_vat.setText(to_arabic_digits(f"{total_vat:.2f}"))
 
         try:
             thai_text = bahttext(float(f"{total_vat:.2f}"))
@@ -207,13 +221,22 @@ class CreditNoteWindow(QWidget):
                 ws = wb[sheet_name]
 
                 ws["H3"] = credit_note_no
-                ws["I9"] = self.date_edit.date().toPython()
+                # Convert to Arabic digits string format dd/mm/yyyy + 543 year
+                credit_note_date = self.date_edit.date().toPython()
+                credit_note_date_str = f"{credit_note_date.day:02d}/{credit_note_date.month:02d}/{credit_note_date.year + 543}"
+                ws["I9"] = to_arabic_digits(credit_note_date_str)
+
                 ws["D12"] = self.invoice_input.text()
                 ws["I26"] = self.invoice_amount_input.text()
                 ws["D9"] = self.customer_id.text()
                 ws["B10"] = self.customer_name.text()
                 ws["B11"] = self.customer_address.toPlainText()
                 ws["D32"] = self.reason.text()
+
+                # Invoice date with same formatting + arabic digits
+                invoice_date = self.tax_invoice_date.date().toPython()
+                invoice_date_str = f"{invoice_date.day:02d}/{invoice_date.month:02d}/{invoice_date.year + 543}"
+                ws["H12"] = to_arabic_digits(invoice_date_str)
 
                 ws["I27"] = float(self.total_credit.text())
                 ws["I27"].number_format = accounting_format
@@ -227,7 +250,6 @@ class CreditNoteWindow(QWidget):
                 ws["I30"] = float(self.total_with_vat.text())
                 ws["I30"].number_format = accounting_format
 
-                ws["I31"] = self.thai_amount.text()
                 ws["A30"] = self.thai_amount.text()
 
                 start_row = 16
@@ -280,7 +302,6 @@ class CreditNoteWindow(QWidget):
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Export failed:\n{str(e)}")
-
 
 if __name__ == "__main__":
     app = QApplication([])
