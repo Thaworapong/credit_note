@@ -1,3 +1,5 @@
+#V.1.0.0
+#First release of the Credit Note application
 import os
 import json
 from datetime import datetime
