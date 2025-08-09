@@ -22,23 +22,29 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install pyinstaller PySide6 openpyxl pythainlp
+          pip install pyinstaller PySide6 openpyxl pythainlp pillow
+
+      - name: Show current directory and files (debug)
+        run: |
+          pwd
+          dir
 
       - name: Build EXE with PyInstaller
         run: |
-          pyinstaller credit_note/credit_note.py `
+          cd credit_note
+          pyinstaller credit_note.py `
             --name "CreditNoteApp" `
-            --icon credit_note/credit_note.ico `
+            --icon credit_note.ico `
             --noconfirm `
             --onefile `
             --noconsole `
-            --add-data "credit_note/credit_note.png;." `
-            --add-data "config;config" `
-            --add-data "template/credit_note_template.xlsx;template" `
-            --add-data "output;output"
+            --add-data "credit_note.png;." `
+            --add-data "../config;config" `
+            --add-data "../template/credit_note_template.xlsx;template" `
+            --add-data "../output;output"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: CreditNoteApp
-          path: dist/CreditNoteApp.exe
+          path: credit_note/dist/CreditNoteApp.exe
