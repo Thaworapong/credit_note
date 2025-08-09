@@ -1,0 +1,44 @@
+name: Build EXE
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyinstaller PySide6 openpyxl pythainlp
+
+      - name: Build EXE with PyInstaller
+        run: |
+          pyinstaller credit_note/credit_note.py `
+            --name "CreditNoteApp" `
+            --icon credit_note/credit_note.png `
+            --noconfirm `
+            --onefile `
+            --noconsole `
+            --add-data "credit_note/credit_note.png;." `
+            --add-data "config;config" `
+            --add-data "template/credit_note_template.xlsx;template" `
+            --add-data "output;output"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CreditNoteApp
+          path: dist/CreditNoteApp.exe
