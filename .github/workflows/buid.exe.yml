@@ -43,8 +43,9 @@ jobs:
             --add-data "../output;output"
 
       - name: List dist folder contents
-        run: dir credit_note\dist\ /s
-
+        shell: cmd
+        run: dir credit_note\dist /s
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
