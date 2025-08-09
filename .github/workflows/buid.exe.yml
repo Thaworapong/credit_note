@@ -43,8 +43,19 @@ jobs:
             --add-data "../template/credit_note_template.xlsx;template" `
             --add-data "../output;output"
 
-      - name: Upload artifact
+      - name: Prepare package folder
+        run: |
+          mkdir package
+          copy credit_note\dist\CreditNoteApp.exe package\
+          xcopy config package\config /E /I
+          xcopy template package\template /E /I
+          xcopy output package\output /E /I
+
+      - name: Create ZIP artifact
+        run: powershell Compress-Archive -Path package\* -DestinationPath CreditNoteApp-package.zip
+
+      - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CreditNoteApp
-          path: credit_note/dist/CreditNoteApp.exe
+          name: CreditNoteApp-package
+          path: CreditNoteApp-package.zip
