@@ -28,7 +28,7 @@ jobs:
         run: |
           pyinstaller credit_note/credit_note.py `
             --name "CreditNoteApp" `
-            --icon credit_note/credit_note.png `
+            --icon credit_note/credit_note.ico `
             --noconfirm `
             --onefile `
             --noconsole `
