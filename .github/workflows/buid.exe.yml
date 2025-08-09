@@ -36,7 +36,6 @@ jobs:
             --name "CreditNoteApp" `
             --icon credit_note.ico `
             --noconfirm `
-            --onefile `
             --noconsole `
             --add-data "credit_note.png;." `
             --add-data "../config;config" `
