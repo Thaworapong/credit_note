@@ -49,10 +49,15 @@ jobs:
           xcopy output package\output /E /I
 
       - name: Create ZIP artifact
-        run: powershell Compress-Archive -Path package\* -DestinationPath CreditNoteApp-package.zip
+        run: |
+          $date = Get-Date -Format "yyyyMMdd"
+          $zipName = "CreditNote-$date.zip"
+          powershell Compress-Archive -Path package\* -DestinationPath $zipName
+          echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
 
       - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CreditNoteApp-package
-          path: CreditNoteApp-package.zip
+          name: ${{ env.ZIP_NAME }}
+          path: ${{ env.ZIP_NAME }}
+
