@@ -92,14 +92,14 @@ class CreditNoteWindow(QWidget):
         self.customer_address = QTextEdit()
         self.customer_address.setFixedHeight(60)
 
-        form_layout.addRow("Credit Note No:", self.credit_note_no)
-        form_layout.addRow("Date:", self.date_edit)
-        form_layout.addRow("Reference Invoice:", self.invoice_input)
-        form_layout.addRow("Invoice Amount (Input):", self.invoice_amount_input)
-        form_layout.addRow("Invoice Date:", self.tax_invoice_date)
-        form_layout.addRow("Customer ID:", self.customer_id)
-        form_layout.addRow("Customer Name:", self.customer_name)
-        form_layout.addRow("Customer Address:", self.customer_address)
+        form_layout.addRow("เลขที่ใบลดหนี้:", self.credit_note_no)
+        form_layout.addRow("วันที่ใบลดหนี้:", self.date_edit)
+        form_layout.addRow("อ้างถึงใบกำกับภาษีเลขที่เดิม:", self.invoice_input)
+        form_layout.addRow("มูลค่าสินค้าตามใบกำกับภาษีเดิม:", self.invoice_amount_input)
+        form_layout.addRow("วันที่ใบกำกับภาษีเดิม:", self.tax_invoice_date)
+        form_layout.addRow("เลขประจำตัวผู้เสียภาษี:", self.customer_id)
+        form_layout.addRow("นามผู้ซื้อ:", self.customer_name)
+        form_layout.addRow("ที่อยู่:", self.customer_address)
 
         self.table = QTableWidget(12, 4)
         self.table.setHorizontalHeaderLabels(["Item", "Quantity", "Unit Price", "Amount"])
@@ -127,13 +127,13 @@ class CreditNoteWindow(QWidget):
         self.thai_amount = QLineEdit()
         self.thai_amount.setReadOnly(True)
 
-        reason_layout.addRow("Reason for Credit:", self.reason)
-        reason_layout.addRow("Invoice Amount (Display):", self.invoice_amount_display)
-        reason_layout.addRow("Total Credit Note:", self.total_credit)
-        reason_layout.addRow("Different Amount:", self.different_amount)
-        reason_layout.addRow("VAT 7%:", self.vat_amount)
-        reason_layout.addRow("Total Amount (incl. VAT):", self.total_with_vat)
-        reason_layout.addRow("Total Amount in Thai:", self.thai_amount)
+        reason_layout.addRow("เหตุผลในการออกใบลดหนี้:", self.reason)
+        reason_layout.addRow("มูลค่าสินค้าตามใบกำกับภาษีเดิม", self.invoice_amount_display)
+        reason_layout.addRow("มูลค่าสินค้าที่ถูกต้อง:", self.different_amount)
+        reason_layout.addRow("มูลค่าสินค้าผลต่าง:", self.total_credit)
+        reason_layout.addRow("จำนวนภาษีมูลค่าเพิ่ม 7%:", self.vat_amount)
+        reason_layout.addRow("จำนวนเงินรวมทั้งสิ้น:", self.total_with_vat)
+        reason_layout.addRow("จำนวนเงิน (ตัวอักษร):", self.thai_amount)
 
         button_layout = QHBoxLayout()
         self.export_btn = QPushButton("Export Excel")
@@ -238,8 +238,12 @@ class CreditNoteWindow(QWidget):
                 # Invoice date with same formatting + arabic digits
                 invoice_date = self.tax_invoice_date.date().toPython()
                 invoice_date_str = f"{invoice_date.day:02d}/{invoice_date.month:02d}/{invoice_date.year + 543}"
+                
                 ws["H12"] = to_arabic_digits(invoice_date_str)
-
+                
+                ws["I26"] = float(self.invoice_amount_input.text())
+                ws["I26"].number_format = accounting_format
+                
                 ws["I28"] = float(self.total_credit.text())
                 ws["I28"].number_format = accounting_format
 
