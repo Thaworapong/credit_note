@@ -189,8 +189,8 @@ class CreditNoteWindow(QWidget):
 
         self.invoice_amount_display.setText(to_arabic_digits(f"{invoice_amt:.2f}"))
         diff = invoice_amt - total
-        vat = diff * 0.07 if diff > 0 else 0.0
-        total_vat = diff + vat if diff > 0 else diff
+        vat = total * 0.07 if diff > 0 else 0.0
+        total_vat = total + vat if diff > 0 else diff
 
         self.different_amount.setText(to_arabic_digits(f"{diff:.2f}"))
         self.vat_amount.setText(to_arabic_digits(f"{vat:.2f}"))
@@ -240,11 +240,11 @@ class CreditNoteWindow(QWidget):
                 invoice_date_str = f"{invoice_date.day:02d}/{invoice_date.month:02d}/{invoice_date.year + 543}"
                 ws["H12"] = to_arabic_digits(invoice_date_str)
 
-                ws["I27"] = float(self.total_credit.text())
-                ws["I27"].number_format = accounting_format
-
-                ws["I28"] = float(self.different_amount.text())
+                ws["I28"] = float(self.total_credit.text())
                 ws["I28"].number_format = accounting_format
+
+                ws["I27"] = float(self.different_amount.text())
+                ws["I27"].number_format = accounting_format
 
                 ws["I29"] = float(self.vat_amount.text())
                 ws["I29"].number_format = accounting_format
